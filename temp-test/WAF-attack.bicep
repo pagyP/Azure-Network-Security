@@ -1499,6 +1499,7 @@ resource Site_1 'Microsoft.Web/sites@2018-11-01' = {
     //serverFarmId: resourceId('Microsoft.Web/serverfarms', Site_HPN_var)
     serverFarmId: Site_HPN.id
     clientAffinityEnabled: false
+    publicNetworkAccess: 'Disabled'
   }
   // dependsOn: [
   //   Site_HPN

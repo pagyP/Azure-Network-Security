@@ -1627,47 +1627,47 @@ resource VM_1 'Microsoft.Compute/virtualMachines@2019-07-01' = {
   }
 }
 
-resource VM_2 'Microsoft.Compute/virtualMachines@2019-07-01' = {
-  name: VM_Name2
-  location: location
-  plan: {
-    name: 'kali'
-    publisher: 'kali-linux'
-    product: 'kali'
-  }
-  properties: {
-    hardwareProfile: {
-      vmSize: 'Standard_D2s_v3'
-    }
-    storageProfile: {
-      osDisk: {
-        name: '${VM_Name2}-datadisk1'
-        createOption: 'fromImage'
-        managedDisk: {
-          storageAccountType: 'Standard_LRS'
-        }
-      }
-      imageReference: {
-        publisher: 'kali-linux'
-        offer: 'kali'
-        sku: 'kali'
-        version: 'latest'
-      }
-    }
-    networkProfile: {
-      networkInterfaces: [
-        {
-          id: NIC_2.id
-        }
-      ]
-    }
-    osProfile: {
-      computerName: VM_Name2
-      adminUsername: DefaultUserName
-      adminPassword: DefaultPassword
-    }
-  }
-}
+// resource VM_2 'Microsoft.Compute/virtualMachines@2019-07-01' = {
+//   name: VM_Name2
+//   location: location
+//   plan: {
+//     name: 'kali'
+//     publisher: 'kali-linux'
+//     product: 'kali'
+//   }
+//   properties: {
+//     hardwareProfile: {
+//       vmSize: 'Standard_D2s_v3'
+//     }
+//     storageProfile: {
+//       osDisk: {
+//         name: '${VM_Name2}-datadisk1'
+//         createOption: 'fromImage'
+//         managedDisk: {
+//           storageAccountType: 'Standard_LRS'
+//         }
+//       }
+//       imageReference: {
+//         publisher: 'kali-linux'
+//         offer: 'kali'
+//         sku: 'kali'
+//         version: 'latest'
+//       }
+//     }
+//     networkProfile: {
+//       networkInterfaces: [
+//         {
+//           id: NIC_2.id
+//         }
+//       ]
+//     }
+//     osProfile: {
+//       computerName: VM_Name2
+//       adminUsername: DefaultUserName
+//       adminPassword: DefaultPassword
+//     }
+//   }
+// }
 
 resource VM_3 'Microsoft.Compute/virtualMachines@2019-07-01' = {
   name: VM_Name3

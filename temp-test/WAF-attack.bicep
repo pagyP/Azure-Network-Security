@@ -21,26 +21,30 @@ param DiagnosticsWorkspaceResourceGroup string = '<ResourceGroupName>'
 ])
 param DDOSProtectionConfiguration bool = false
 
+@description('The resource location')
 param location string = resourceGroup().location
 
-var VN_Name1 = 'VN-HUB'
-var VN_Name2 = 'VN-SPOKE1'
-var VN_Name3 = 'VN-SPOKE2'
-var VN_Name1Prefix = '10.0.25.0/24'
-var VN_Name1Subnet1Name = 'AGWAFSubnet'
-var VN_Name1Subnet1Prefix = '10.0.25.64/26'
-var VN_Name1Subnet2Name = 'AzureFirewallSubnet'
-var VN_Name1Subnet2Prefix = '10.0.25.0/26'
-var VN_Name2Prefix = '10.0.27.0/24'
-var VN_Name2Subnet1Name = 'SPOKE1-SUBNET1'
-var VN_Name2Subnet1Prefix = '10.0.27.0/26'
-var VN_Name2Subnet2Name = 'SPOKE1-SUBNET2'
-var VN_Name2Subnet2Prefix = '10.0.27.64/26'
-var VN_Name3Prefix = '10.0.28.0/24'
-var VN_Name3Subnet1Name = 'SPOKE2-SUBNET1'
-var VN_Name3Subnet1Prefix = '10.0.28.0/26'
-var VN_Name3Subnet2Name = 'SPOKE2-SUBNET2'
-var VN_Name3Subnet2Prefix = '10.0.28.64/26'
+@description('The name of the log analytics workspace.')
+param workspaceName string = 'SOCNSLogAnalytics'
+
+var hub_vnet_name = 'VN-HUB'
+var spoke_1_name = 'VN-SPOKE1'
+var spoke_2_name = 'VN-SPOKE2'
+var hub_vnet_namePrefix = '10.0.25.0/24'
+var hub_vnet_nameSubnet1Name = 'AGWAFSubnet'
+var hub_vnet_nameSubnet1Prefix = '10.0.25.64/26'
+var hub_vnet_nameSubnet2Name = 'AzureFirewallSubnet'
+var hub_vnet_nameSubnet2Prefix = '10.0.25.0/26'
+var spoke_1_namePrefix = '10.0.27.0/24'
+var spoke_1_nameSubnet1Name = 'SPOKE1-SUBNET1'
+var spoke_1_nameSubnet1Prefix = '10.0.27.0/26'
+var spoke_1_nameSubnet2Name = 'SPOKE1-SUBNET2'
+var spoke_1_nameSubnet2Prefix = '10.0.27.64/26'
+var spoke_2_namePrefix = '10.0.28.0/24'
+var spoke_2_nameSubnet1Name = 'SPOKE2-SUBNET1'
+var spoke_2_nameSubnet1Prefix = '10.0.28.0/26'
+var spoke_2_nameSubnet2Name = 'SPOKE2-SUBNET2'
+var spoke_2_nameSubnet2Prefix = '10.0.28.64/26'
 var Subnet_serviceEndpoints = [
   {
     service: 'Microsoft.Web'
@@ -75,7 +79,7 @@ var RT_Name1 = 'SOC-NS-DEFAULT-ROUTE'
 var NSG_Name1 = 'SOC-NS-NSG-SPOKE1'
 var NSG_Name2 = 'SOC-NS-NSG-SPOKE2'
 var Site_Name1 = 'owaspdirect-${uniqueString(resourceGroup().id)}'
-var Site_HPN_var = 'OWASP-ASP'
+var site_plan = 'OWASP-ASP'
 var NIC_Name1 = 'Nic1'
 var NIC_Name2 = 'Nic2'
 var NIC_Name3 = 'Nic3'
@@ -86,18 +90,31 @@ var DDoSPlanName = 'SOCNSDDOSPLAN'
 var VM_Name1 = 'VM-Win11'
 var VM_Name2 = 'VM-Kali'
 var VM_Name3 = 'VM-Win2019'
-var workspaceid = '/subscriptions/${DiagnosticsWorkspaceSubscription}/resourcegroups/${DiagnosticsWorkspaceResourceGroup}/providers/Microsoft.OperationalInsights/workspaces/${DiagnosticsWorkspaceName}'
+//var workspaceid = '/subscriptions/${DiagnosticsWorkspaceSubscription}/resourcegroups/${DiagnosticsWorkspaceResourceGroup}/providers/Microsoft.OperationalInsights/workspaces/${DiagnosticsWorkspaceName}'
 
-resource VN_1 'Microsoft.Network/virtualNetworks@2020-03-01' = {
-  name: VN_Name1
+
+
+resource laworkspace 'Microsoft.OperationalInsights/workspaces@2022-10-01' = {
+  name: workspaceName
+  location: location
+  properties: {
+    sku: {
+      name: 'PerGB2018'
+    }
+    retentionInDays: 30
+  }
+}
+
+resource hub_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
+  name: hub_vnet_name
   location: location
   tags: {
-    displayName: VN_Name1
+    displayName: hub_vnet_name
   }
   properties: {
     addressSpace: {
       addressPrefixes: [
-        VN_Name1Prefix
+        hub_vnet_namePrefix
       ]
     }
     enableDdosProtection: DDOSProtectionConfiguration
@@ -108,64 +125,68 @@ resource VN_1 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   }
 }
 
-resource VN_Name1_VN_Name1Subnet1 'Microsoft.Network/virtualNetworks/subnets@2020-03-01' = {
-  parent: VN_1
+resource hub_vnet_name_hub_vnet_nameSubnet1 'Microsoft.Network/virtualNetworks/subnets@2020-03-01' = {
+  parent: hub_vnet
   //location: location
-  name: '${VN_Name1Subnet1Name}'
+  name: hub_vnet_nameSubnet1Name
   properties: {
-    addressPrefix: VN_Name1Subnet1Prefix
+    addressPrefix: hub_vnet_nameSubnet1Prefix
     serviceEndpoints: Subnet_serviceEndpoints
   }
 }
 
-resource VN_Name1_VN_Name1Subnet2 'Microsoft.Network/virtualNetworks/subnets@2020-03-01' = {
-  parent: VN_1
+resource hub_vnet_name_hub_vnet_nameSubnet2 'Microsoft.Network/virtualNetworks/subnets@2020-03-01' = {
+  parent: hub_vnet
   //location: location
-  name: '${VN_Name1Subnet2Name}'
+  name: hub_vnet_nameSubnet2Name
   properties: {
-    addressPrefix: VN_Name1Subnet2Prefix
+    addressPrefix: hub_vnet_nameSubnet2Prefix
     serviceEndpoints: Subnet_serviceEndpoints
   }
   dependsOn: [
 
-    VN_Name1_VN_Name1Subnet1
+    hub_vnet_name_hub_vnet_nameSubnet1
   ]
 }
 
-// resource VN_Name1_microsoft_insights_VN1Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
-//   name: '${VN_Name1}/microsoft.insights/VN1Diagnostics'
-//   properties: {
-//     name: 'DiagService'
-//     workspaceId: workspaceid
-//     logs: [
-//       {
-//         category: 'VMProtectionAlerts'
-//         enabled: true
-//       }
-//     ]
-//   }
-//   dependsOn: [
-//     VN_1
-//   ]
-// }
+resource hub_vnet_diagnostics 'microsoft.insights/diagnosticSettings@2021-05-01-preview' = {
+  scope:hub_vnet
+  name: 'diagsettings'
+  properties: {
+    workspaceId: laworkspace.id
+    logs: [
+      {
+        category: 'VMProtectionAlerts'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+    
+  }
+}
 
-resource VN_2 'Microsoft.Network/virtualNetworks@2020-03-01' = {
-  name: VN_Name2
+resource spoke_1_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
+  name: spoke_1_name
   location: location
   tags: {
-    displayName: VN_Name2
+    displayName: spoke_1_name
   }
   properties: {
     addressSpace: {
       addressPrefixes: [
-        VN_Name2Prefix
+        spoke_1_namePrefix
       ]
     }
     subnets: [
       {
-        name: VN_Name2Subnet1Name
+        name: spoke_1_nameSubnet1Name
         properties: {
-          addressPrefix: VN_Name2Subnet1Prefix
+          addressPrefix: spoke_1_nameSubnet1Prefix
           networkSecurityGroup: {
             id: NSG_1.id
           }
@@ -178,9 +199,9 @@ resource VN_2 'Microsoft.Network/virtualNetworks@2020-03-01' = {
         }
       }
       {
-        name: VN_Name2Subnet2Name
+        name: spoke_1_nameSubnet2Name
         properties: {
-          addressPrefix: VN_Name2Subnet2Prefix
+          addressPrefix: spoke_1_nameSubnet2Prefix
           networkSecurityGroup: {
             id: NSG_1.id
           }
@@ -196,8 +217,8 @@ resource VN_2 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   }
 }
 
-// resource VN_Name2_microsoft_insights_VN2Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
-//   name: '${VN_Name2}/microsoft.insights/VN2Diagnostics'
+// resource spoke_1_name_microsoft_insights_VN2Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${spoke_1_name}/microsoft.insights/VN2Diagnostics'
 //   properties: {
 //     name: 'DiagService'
 //     workspaceId: workspaceid
@@ -209,27 +230,27 @@ resource VN_2 'Microsoft.Network/virtualNetworks@2020-03-01' = {
 //     ]
 //   }
 //   dependsOn: [
-//     VN_2
+//     spoke_1_vnet
 //   ]
 // }
 
-resource VN_3 'Microsoft.Network/virtualNetworks@2020-03-01' = {
-  name: VN_Name3
+resource spoke_2_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
+  name: spoke_2_name
   location: location
   tags: {
-    displayName: VN_Name3
+    displayName: spoke_2_name
   }
   properties: {
     addressSpace: {
       addressPrefixes: [
-        VN_Name3Prefix
+        spoke_2_namePrefix
       ]
     }
     subnets: [
       {
-        name: VN_Name3Subnet1Name
+        name: spoke_2_nameSubnet1Name
         properties: {
-          addressPrefix: VN_Name3Subnet1Prefix
+          addressPrefix: spoke_2_nameSubnet1Prefix
           networkSecurityGroup: {
             id: NSG_2.id
           }
@@ -242,9 +263,9 @@ resource VN_3 'Microsoft.Network/virtualNetworks@2020-03-01' = {
         }
       }
       {
-        name: VN_Name3Subnet2Name
+        name: spoke_2_nameSubnet2Name
         properties: {
-          addressPrefix: VN_Name3Subnet2Prefix
+          addressPrefix: spoke_2_nameSubnet2Prefix
           networkSecurityGroup: {
             id: NSG_2.id
           }
@@ -260,8 +281,8 @@ resource VN_3 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   }
 }
 
-// resource VN_Name3_microsoft_insights_VN3Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
-//   name: '${VN_Name3}/microsoft.insights/VN3Diagnostics'
+// resource spoke_2_name_microsoft_insights_VN3Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${spoke_2_name}/microsoft.insights/VN3Diagnostics'
 //   properties: {
 //     name: 'DiagService'
 //     workspaceId: workspaceid
@@ -273,17 +294,17 @@ resource VN_3 'Microsoft.Network/virtualNetworks@2020-03-01' = {
 //     ]
 //   }
 //   dependsOn: [
-//     VN_3
+//     spoke_2_vnet
 //   ]
 // }
 
-resource VN_Name1_VN_Name1_Peering_To_VN_NAME2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
-  parent: VN_1
-  name: '${VN_Name1}-Peering-To-${VN_Name2}'
+resource hub_vnet_name_hub_vnet_name_Peering_To_spoke_1_name 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
+  parent: hub_vnet
+  name: '${hub_vnet_name}-Peering-To-${spoke_1_name}'
   properties: {
     peeringState: 'Connected'
     remoteVirtualNetwork: {
-      id: VN_2.id
+      id: spoke_1_vnet.id
     }
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: true
@@ -291,25 +312,25 @@ resource VN_Name1_VN_Name1_Peering_To_VN_NAME2 'Microsoft.Network/virtualNetwork
     useRemoteGateways: false
     remoteAddressSpace: {
       addressPrefixes: [
-        VN_Name2Prefix
+        spoke_1_namePrefix
       ]
     }
   }
   dependsOn: [
 
-    VN_3
-    VN_Name1_VN_Name1Subnet1
-    VN_Name1_VN_Name1Subnet2
+    spoke_2_vnet
+    hub_vnet_name_hub_vnet_nameSubnet1
+    hub_vnet_name_hub_vnet_nameSubnet2
   ]
 }
 
-resource VN_Name1_VN_Name1_Peering_To_VN_NAME3 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
-  parent: VN_1
-  name: '${VN_Name1}-Peering-To-${VN_Name3}'
+resource hub_vnet_name_hub_vnet_name_Peering_To_spoke_2_name 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
+  parent: hub_vnet
+  name: '${hub_vnet_name}-Peering-To-${spoke_2_name}'
   properties: {
     peeringState: 'Connected'
     remoteVirtualNetwork: {
-      id: VN_3.id
+      id: spoke_2_vnet.id
     }
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: true
@@ -317,26 +338,26 @@ resource VN_Name1_VN_Name1_Peering_To_VN_NAME3 'Microsoft.Network/virtualNetwork
     useRemoteGateways: false
     remoteAddressSpace: {
       addressPrefixes: [
-        VN_Name3Prefix
+        spoke_2_namePrefix
       ]
     }
   }
   dependsOn: [
 
-    VN_2
+    spoke_1_vnet
 
-    VN_Name1_VN_Name1Subnet1
-    VN_Name1_VN_Name1Subnet2
+    hub_vnet_name_hub_vnet_nameSubnet1
+    hub_vnet_name_hub_vnet_nameSubnet2
   ]
 }
 
-resource VN_Name2_VN_Name2_Peering_To_VN_NAME1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
-  parent: VN_2
-  name: '${VN_Name2}-Peering-To-${VN_Name1}'
+resource spoke_1_name_spoke_1_name_Peering_To_hub_vnet_name 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
+  parent: spoke_1_vnet
+  name: '${spoke_1_name}-Peering-To-${hub_vnet_name}'
   properties: {
     peeringState: 'Connected'
     remoteVirtualNetwork: {
-      id: VN_1.id
+      id: hub_vnet.id
     }
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: true
@@ -344,25 +365,25 @@ resource VN_Name2_VN_Name2_Peering_To_VN_NAME1 'Microsoft.Network/virtualNetwork
     useRemoteGateways: false
     remoteAddressSpace: {
       addressPrefixes: [
-        VN_Name1Prefix
+        hub_vnet_namePrefix
       ]
     }
   }
   dependsOn: [
 
-    VN_3
-    VN_Name1_VN_Name1Subnet1
-    VN_Name1_VN_Name1Subnet2
+    spoke_2_vnet
+    hub_vnet_name_hub_vnet_nameSubnet1
+    hub_vnet_name_hub_vnet_nameSubnet2
   ]
 }
 
-resource VN_Name3_VN_Name3_Peering_To_VN_NAME1 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
-  parent: VN_3
-  name: '${VN_Name3}-Peering-To-${VN_Name1}'
+resource spoke_2_name_spoke_2_name_Peering_To_hub_vnet_name 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
+  parent: spoke_2_vnet
+  name: '${spoke_2_name}-Peering-To-${hub_vnet_name}'
   properties: {
     peeringState: 'Connected'
     remoteVirtualNetwork: {
-      id: VN_1.id
+      id: hub_vnet.id
     }
     allowVirtualNetworkAccess: true
     allowForwardedTraffic: true
@@ -370,16 +391,16 @@ resource VN_Name3_VN_Name3_Peering_To_VN_NAME1 'Microsoft.Network/virtualNetwork
     useRemoteGateways: false
     remoteAddressSpace: {
       addressPrefixes: [
-        VN_Name1Prefix
+        hub_vnet_namePrefix
       ]
     }
   }
   dependsOn: [
 
-    VN_2
+    spoke_1_vnet
 
-    VN_Name1_VN_Name1Subnet1
-    VN_Name1_VN_Name1Subnet2
+    hub_vnet_name_hub_vnet_nameSubnet1
+    hub_vnet_name_hub_vnet_nameSubnet2
   ]
 }
 
@@ -463,35 +484,35 @@ resource publicIpAddress2 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
 //   ]
 // }
 
-resource FW_name 'Microsoft.Network/azureFirewalls@2019-11-01' = {
-  name: fw_name
-  location: location
-  tags: {
-  }
-  properties: {
-    threatIntelMode: 'Deny'
-    ipConfigurations: [
-      {
-        name: publicIpAddressName1
-        properties: {
-          subnet: {
-            id: VN_Name1_VN_Name1Subnet2.id
-          }
-          publicIPAddress: {
-            id: publicIpAddress1.id
-          }
-        }
-      }
-    ]
-    firewallPolicy: {
-      id: firewallPolicy.id
-    }
-  }
-  dependsOn: [
+// resource FW_name 'Microsoft.Network/azureFirewalls@2019-11-01' = {
+//   name: fw_name
+//   location: location
+//   tags: {
+//   }
+//   properties: {
+//     threatIntelMode: 'Deny'
+//     ipConfigurations: [
+//       {
+//         name: publicIpAddressName1
+//         properties: {
+//           subnet: {
+//             id: hub_vnet_name_hub_vnet_nameSubnet2.id
+//           }
+//           publicIPAddress: {
+//             id: publicIpAddress1.id
+//           }
+//         }
+//       }
+//     ]
+//     firewallPolicy: {
+//       id: firewallPolicy.id
+//     }
+//   }
+//   dependsOn: [
 
-    AG
-  ]
-}
+//     AG
+//   ]
+// }
 
 // resource FW_name_microsoft_insights_FirewallDiagnostics 'Microsoft.Network/azureFirewalls/providers/diagnosticSettings@2017-05-01-preview' = {
 //   name: '${fw_name}/microsoft.insights/FirewallDiagnostics'
@@ -868,7 +889,7 @@ resource AG 'Microsoft.Network/applicationGateways@2020-04-01' = {
         name: 'appGatewayIpConfig'
         properties: {
           subnet: {
-            id: VN_Name1_VN_Name1Subnet1.id
+            id: hub_vnet_name_hub_vnet_nameSubnet1.id
           }
         }
       }
@@ -886,7 +907,7 @@ resource AG 'Microsoft.Network/applicationGateways@2020-04-01' = {
         name: 'appGwPrivateFrontendIp'
         properties: {
           subnet: {
-            id: VN_Name1_VN_Name1Subnet1.id
+            id: hub_vnet_name_hub_vnet_nameSubnet1.id
           }
           privateIPAddress: AppGateway_IPAddress
           privateIPAllocationMethod: 'Static'
@@ -1356,7 +1377,7 @@ resource NSG_1 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
           protocol: '*'
           sourcePortRange: '*'
           destinationPortRange: '*'
-          sourceAddressPrefix: VN_Name3Prefix
+          sourceAddressPrefix: spoke_2_namePrefix
           destinationAddressPrefix: 'VirtualNetwork'
           access: 'Allow'
           priority: 100
@@ -1374,7 +1395,7 @@ resource NSG_1 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
           sourcePortRange: '*'
           destinationPortRange: '*'
           sourceAddressPrefix: 'VirtualNetwork'
-          destinationAddressPrefix: VN_Name3Prefix
+          destinationAddressPrefix: spoke_2_namePrefix
           access: 'Allow'
           priority: 100
           direction: 'Outbound'
@@ -1422,7 +1443,7 @@ resource NSG_2 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
           protocol: '*'
           sourcePortRange: '*'
           destinationPortRange: '*'
-          sourceAddressPrefix: VN_Name2Prefix
+          sourceAddressPrefix: spoke_1_namePrefix
           destinationAddressPrefix: 'VirtualNetwork'
           access: 'Allow'
           priority: 100
@@ -1440,7 +1461,7 @@ resource NSG_2 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
           sourcePortRange: '*'
           destinationPortRange: '*'
           sourceAddressPrefix: 'VirtualNetwork'
-          destinationAddressPrefix: VN_Name2Prefix
+          destinationAddressPrefix: spoke_1_namePrefix
           access: 'Allow'
           priority: 100
           direction: 'Outbound'
@@ -1496,7 +1517,7 @@ resource Site_1 'Microsoft.Web/sites@2018-11-01' = {
       linuxFxVersion: 'DOCKER|mohitkusecurity/juice-shop-updated'
       alwaysOn: true
     }
-    //serverFarmId: resourceId('Microsoft.Web/serverfarms', Site_HPN_var)
+    //serverFarmId: resourceId('Microsoft.Web/serverfarms', site_plan)
     serverFarmId: Site_HPN.id
     clientAffinityEnabled: false
     publicNetworkAccess: 'Disabled'
@@ -1507,7 +1528,7 @@ resource Site_1 'Microsoft.Web/sites@2018-11-01' = {
 }
 
 resource Site_HPN 'Microsoft.Web/serverfarms@2018-02-01' = {
-  name: Site_HPN_var
+  name: site_plan
   location: location
   sku: {
     tier: 'PremiumV2'
@@ -1515,7 +1536,7 @@ resource Site_HPN 'Microsoft.Web/serverfarms@2018-02-01' = {
   }
   kind: 'linux'
   properties: {
-    // name: Site_HPN_var
+    // name: site_plan
     // workerSize: 3
     // workerSizeId: 3
     // numberOfWorkers: 1
@@ -1540,7 +1561,7 @@ resource NIC_1 'Microsoft.Network/networkInterfaces@2019-07-01' = {
         properties: {
           privateIPAddress: NIC_Name1Ipaddress
           subnet: {
-            id: '${VN_2.id}/subnets/${VN_Name2Subnet1Name}'
+            id: '${spoke_1_vnet.id}/subnets/${spoke_1_nameSubnet1Name}'
           }
           privateIPAllocationMethod: 'Static'
         }
@@ -1559,7 +1580,7 @@ resource NIC_2 'Microsoft.Network/networkInterfaces@2019-07-01' = {
         properties: {
           privateIPAddress: NIC_Name2Ipaddress
           subnet: {
-            id: '${VN_2.id}/subnets/${VN_Name2Subnet2Name}'
+            id: '${spoke_1_vnet.id}/subnets/${spoke_1_nameSubnet2Name}'
           }
           privateIPAllocationMethod: 'Static'
         }
@@ -1578,7 +1599,7 @@ resource NIC_3 'Microsoft.Network/networkInterfaces@2019-07-01' = {
         properties: {
           privateIPAddress: NIC_Name3Ipaddress
           subnet: {
-            id: '${VN_3.id}/subnets/${VN_Name3Subnet1Name}'
+            id: '${spoke_2_vnet.id}/subnets/${spoke_2_nameSubnet1Name}'
           }
           privateIPAllocationMethod: 'Static'
         }

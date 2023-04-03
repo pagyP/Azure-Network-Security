@@ -19,7 +19,9 @@ param DiagnosticsWorkspaceResourceGroup string = '<ResourceGroupName>'
   true
   false
 ])
-param DDOSProtectionConfiguration bool = true
+param DDOSProtectionConfiguration bool = false
+
+param location string = resourceGroup().location
 
 var VN_Name1 = 'VN-HUB'
 var VN_Name2 = 'VN-SPOKE1'
@@ -61,13 +63,13 @@ var Subnet_serviceEndpoints = [
 ]
 var publicIpAddressName1 = 'SOCNSFWPIP'
 var publicIpAddressName2 = 'SOCNSAGPIP'
-var FW_name_var = 'SOC-NS-FW'
+var fw_name = 'SOC-NS-FW'
 var firewallPolicyName = 'SOC-NS-FWPolicy'
 var AppGatewayPolicyName = 'SOC-NS-AGPolicy'
 var FrontdoorPolicyName = 'SOCNSFDPolicy'
 var AG_Name = 'SOC-NS-AG-WAFv2'
 var AppGateway_IPAddress = '10.0.25.70'
-var applicationGatewayId = AG.id
+//var applicationGatewayId = resourceId('Microsoft.Network/applicationGateways', AG_Name)
 var FrontDoorName = 'Demowasp-${uniqueString(resourceGroup().id)}'
 var RT_Name1 = 'SOC-NS-DEFAULT-ROUTE'
 var NSG_Name1 = 'SOC-NS-NSG-SPOKE1'
@@ -88,7 +90,7 @@ var workspaceid = '/subscriptions/${DiagnosticsWorkspaceSubscription}/resourcegr
 
 resource VN_1 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   name: VN_Name1
-  location: resourceGroup().location
+  location: location
   tags: {
     displayName: VN_Name1
   }
@@ -100,15 +102,15 @@ resource VN_1 'Microsoft.Network/virtualNetworks@2020-03-01' = {
     }
     enableDdosProtection: DDOSProtectionConfiguration
     enableVmProtection: false
-    ddosProtectionPlan: {
-      id: DDoSPlan.id
-    }
+    // ddosProtectionPlan: {
+    //   id: DDoSPlan.id
+    // }
   }
 }
 
 resource VN_Name1_VN_Name1Subnet1 'Microsoft.Network/virtualNetworks/subnets@2020-03-01' = {
   parent: VN_1
-  location: resourceGroup().location
+  //location: location
   name: '${VN_Name1Subnet1Name}'
   properties: {
     addressPrefix: VN_Name1Subnet1Prefix
@@ -118,7 +120,7 @@ resource VN_Name1_VN_Name1Subnet1 'Microsoft.Network/virtualNetworks/subnets@202
 
 resource VN_Name1_VN_Name1Subnet2 'Microsoft.Network/virtualNetworks/subnets@2020-03-01' = {
   parent: VN_1
-  location: resourceGroup().location
+  //location: location
   name: '${VN_Name1Subnet2Name}'
   properties: {
     addressPrefix: VN_Name1Subnet2Prefix
@@ -130,26 +132,26 @@ resource VN_Name1_VN_Name1Subnet2 'Microsoft.Network/virtualNetworks/subnets@202
   ]
 }
 
-resource VN_Name1_microsoft_insights_VN1Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${VN_Name1}/microsoft.insights/VN1Diagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'VMProtectionAlerts'
-        enabled: true
-      }
-    ]
-  }
-  dependsOn: [
-    VN_1
-  ]
-}
+// resource VN_Name1_microsoft_insights_VN1Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${VN_Name1}/microsoft.insights/VN1Diagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'VMProtectionAlerts'
+//         enabled: true
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     VN_1
+//   ]
+// }
 
 resource VN_2 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   name: VN_Name2
-  location: resourceGroup().location
+  location: location
   tags: {
     displayName: VN_Name2
   }
@@ -194,26 +196,26 @@ resource VN_2 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   }
 }
 
-resource VN_Name2_microsoft_insights_VN2Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${VN_Name2}/microsoft.insights/VN2Diagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'VMProtectionAlerts'
-        enabled: true
-      }
-    ]
-  }
-  dependsOn: [
-    VN_2
-  ]
-}
+// resource VN_Name2_microsoft_insights_VN2Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${VN_Name2}/microsoft.insights/VN2Diagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'VMProtectionAlerts'
+//         enabled: true
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     VN_2
+//   ]
+// }
 
 resource VN_3 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   name: VN_Name3
-  location: resourceGroup().location
+  location: location
   tags: {
     displayName: VN_Name3
   }
@@ -258,22 +260,22 @@ resource VN_3 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   }
 }
 
-resource VN_Name3_microsoft_insights_VN3Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${VN_Name3}/microsoft.insights/VN3Diagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'VMProtectionAlerts'
-        enabled: true
-      }
-    ]
-  }
-  dependsOn: [
-    VN_3
-  ]
-}
+// resource VN_Name3_microsoft_insights_VN3Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${VN_Name3}/microsoft.insights/VN3Diagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'VMProtectionAlerts'
+//         enabled: true
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     VN_3
+//   ]
+// }
 
 resource VN_Name1_VN_Name1_Peering_To_VN_NAME2 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
   parent: VN_1
@@ -383,7 +385,7 @@ resource VN_Name3_VN_Name3_Peering_To_VN_NAME1 'Microsoft.Network/virtualNetwork
 
 resource publicIpAddress1 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
   name: publicIpAddressName1
-  location: resourceGroup().location
+  location: location
   tags: {
   }
   sku: {
@@ -396,34 +398,34 @@ resource publicIpAddress1 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
   }
 }
 
-resource publicIpAddressName1_microsoft_insights_PIP1Diagnostics 'Microsoft.Network/publicIpAddresses/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${publicIpAddressName1}/microsoft.insights/PIP1Diagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'DDoSProtectionNotifications'
-        enabled: true
-      }
-      {
-        category: 'DDoSMitigationFlowLogs'
-        enabled: true
-      }
-      {
-        category: 'DDoSMitigationReports'
-        enabled: true
-      }
-    ]
-  }
-  dependsOn: [
-    publicIpAddress1
-  ]
-}
+// resource publicIpAddressName1_microsoft_insights_PIP1Diagnostics 'Microsoft.Network/publicIpAddresses/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${publicIpAddressName1}/microsoft.insights/PIP1Diagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'DDoSProtectionNotifications'
+//         enabled: true
+//       }
+//       {
+//         category: 'DDoSMitigationFlowLogs'
+//         enabled: true
+//       }
+//       {
+//         category: 'DDoSMitigationReports'
+//         enabled: true
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     publicIpAddress1
+//   ]
+// }
 
 resource publicIpAddress2 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
   name: publicIpAddressName2
-  location: resourceGroup().location
+  location: location
   tags: {
   }
   sku: {
@@ -436,34 +438,34 @@ resource publicIpAddress2 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
   }
 }
 
-resource publicIpAddressName2_microsoft_insights_PIP2Diagnostics 'Microsoft.Network/publicIpAddresses/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${publicIpAddressName2}/microsoft.insights/PIP2Diagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'DDoSProtectionNotifications'
-        enabled: true
-      }
-      {
-        category: 'DDoSMitigationFlowLogs'
-        enabled: true
-      }
-      {
-        category: 'DDoSMitigationReports'
-        enabled: true
-      }
-    ]
-  }
-  dependsOn: [
-    publicIpAddress2
-  ]
-}
+// resource publicIpAddressName2_microsoft_insights_PIP2Diagnostics 'Microsoft.Network/publicIpAddresses/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${publicIpAddressName2}/microsoft.insights/PIP2Diagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'DDoSProtectionNotifications'
+//         enabled: true
+//       }
+//       {
+//         category: 'DDoSMitigationFlowLogs'
+//         enabled: true
+//       }
+//       {
+//         category: 'DDoSMitigationReports'
+//         enabled: true
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     publicIpAddress2
+//   ]
+// }
 
 resource FW_name 'Microsoft.Network/azureFirewalls@2019-11-01' = {
-  name: FW_name_var
-  location: resourceGroup().location
+  name: fw_name
+  location: location
   tags: {
   }
   properties: {
@@ -491,48 +493,48 @@ resource FW_name 'Microsoft.Network/azureFirewalls@2019-11-01' = {
   ]
 }
 
-resource FW_name_microsoft_insights_FirewallDiagnostics 'Microsoft.Network/azureFirewalls/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${FW_name_var}/microsoft.insights/FirewallDiagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'AzureFirewallApplicationRule'
-        enabled: true
-        retentionPolicy: {
-          days: 10
-          enabled: false
-        }
-      }
-      {
-        category: 'AzureFirewallNetworkRule'
-        enabled: true
-        retentionPolicy: {
-          days: 10
-          enabled: false
-        }
-      }
-    ]
-    metrics: [
-      {
-        category: 'AllMetrics'
-        enabled: true
-        retentionPolicy: {
-          enabled: false
-          days: 0
-        }
-      }
-    ]
-  }
-  dependsOn: [
-    FW_name
-  ]
-}
+// resource FW_name_microsoft_insights_FirewallDiagnostics 'Microsoft.Network/azureFirewalls/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${fw_name}/microsoft.insights/FirewallDiagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'AzureFirewallApplicationRule'
+//         enabled: true
+//         retentionPolicy: {
+//           days: 10
+//           enabled: false
+//         }
+//       }
+//       {
+//         category: 'AzureFirewallNetworkRule'
+//         enabled: true
+//         retentionPolicy: {
+//           days: 10
+//           enabled: false
+//         }
+//       }
+//     ]
+//     metrics: [
+//       {
+//         category: 'AllMetrics'
+//         enabled: true
+//         retentionPolicy: {
+//           enabled: false
+//           days: 0
+//         }
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     FW_name
+//   ]
+// }
 
 resource firewallPolicy 'Microsoft.Network/firewallPolicies@2019-06-01' = {
   name: firewallPolicyName
-  location: resourceGroup().location
+  location: location
   tags: {
   }
   properties: {
@@ -544,7 +546,7 @@ resource firewallPolicy 'Microsoft.Network/firewallPolicies@2019-06-01' = {
 resource firewallPolicyName_DefaultDnatRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleGroups@2019-06-01' = {
   parent: firewallPolicy
   name: 'DefaultDnatRuleCollectionGroup'
-  location: resourceGroup().location
+  //: location
   properties: {
     priority: 100
     rules: [
@@ -685,7 +687,7 @@ resource firewallPolicyName_DefaultDnatRuleCollectionGroup 'Microsoft.Network/fi
 resource firewallPolicyName_DefaultNetworkRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleGroups@2019-06-01' = {
   parent: firewallPolicy
   name: 'DefaultNetworkRuleCollectionGroup'
-  location: resourceGroup().location
+  //location: location
   properties: {
     priority: 200
     rules: [
@@ -783,7 +785,7 @@ resource firewallPolicyName_DefaultNetworkRuleCollectionGroup 'Microsoft.Network
 resource firewallPolicyName_DefaultApplicationRuleCollectionGroup 'Microsoft.Network/firewallPolicies/ruleGroups@2019-06-01' = {
   parent: firewallPolicy
   name: 'DefaultApplicationRuleCollectionGroup'
-  location: resourceGroup().location
+  //location: location
   properties: {
     priority: 300
     rules: [
@@ -852,7 +854,7 @@ resource firewallPolicyName_DefaultApplicationRuleCollectionGroup 'Microsoft.Net
 
 resource AG 'Microsoft.Network/applicationGateways@2020-04-01' = {
   name: AG_Name
-  location: resourceGroup().location
+  location: location
   tags: {
   }
   properties: {
@@ -942,10 +944,10 @@ resource AG 'Microsoft.Network/applicationGateways@2020-04-01' = {
         name: 'Public-HTTP'
         properties: {
           frontendIPConfiguration: {
-            id: '${applicationGatewayId}/frontendIPConfigurations/appGwPublicFrontendIp'
+            id: resourceId('Microsoft.Network/applicationGateways/frontendIPConfigurations', AG_Name, 'appGwPublicFrontendIp')
           }
           frontendPort: {
-            id: '${applicationGatewayId}/frontendPorts/port_80'
+            id: resourceId('Microsoft.Network/applicationGateways/frontendPorts', AG_Name, 'port_80')
           }
           protocol: 'Http'
         }
@@ -957,13 +959,13 @@ resource AG 'Microsoft.Network/applicationGateways@2020-04-01' = {
         properties: {
           ruleType: 'Basic'
           httpListener: {
-            id: '${applicationGatewayId}/httpListeners/Public-HTTP'
+            id: resourceId('Microsoft.Network/applicationGateways/httpListeners', AG_Name, 'Public-HTTP')
           }
           backendAddressPool: {
-            id: '${applicationGatewayId}/backendAddressPools/PAAS-APP'
+            id: resourceId('Microsoft.Network/applicationGateways/backendAddressPools', AG_Name, 'PAAS-APP')
           }
           backendHttpSettings: {
-            id: '${applicationGatewayId}/backendHttpSettingsCollection/Default'
+            id: resourceId('Microsoft.Network/applicationGateways/backendHttpSettingsCollection', AG_Name, 'Default')
           }
         }
       }
@@ -979,34 +981,34 @@ resource AG 'Microsoft.Network/applicationGateways@2020-04-01' = {
   ]
 }
 
-resource AG_Name_microsoft_insights_AppGatewayDiagnostics 'Microsoft.Network/applicationGateways/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${AG_Name}/microsoft.insights/AppGatewayDiagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'ApplicationGatewayAccessLog'
-        enabled: true
-      }
-      {
-        category: 'ApplicationGatewayPerformanceLog'
-        enabled: true
-      }
-      {
-        category: 'ApplicationGatewayFirewallLog'
-        enabled: true
-      }
-    ]
-  }
-  dependsOn: [
-    AG
-  ]
-}
+// resource AG_Name_microsoft_insights_AppGatewayDiagnostics 'Microsoft.Network/applicationGateways/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${AG_Name}/microsoft.insights/AppGatewayDiagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'ApplicationGatewayAccessLog'
+//         enabled: true
+//       }
+//       {
+//         category: 'ApplicationGatewayPerformanceLog'
+//         enabled: true
+//       }
+//       {
+//         category: 'ApplicationGatewayFirewallLog'
+//         enabled: true
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     AG
+//   ]
+// }
 
 resource AppGatewayPolicy 'Microsoft.Network/applicationGatewayWebApplicationFirewallPolicies@2019-09-01' = {
   name: AppGatewayPolicyName
-  location: resourceGroup().location
+  location: location
   tags: {
   }
   properties: {
@@ -1111,220 +1113,220 @@ resource AppGatewayPolicy 'Microsoft.Network/applicationGatewayWebApplicationFir
   dependsOn: []
 }
 
-resource FrontDoor 'Microsoft.Network/frontdoors@2019-04-01' = {
-  name: FrontDoorName
-  location: 'global'
-  tags: {
-  }
-  properties: {
-    friendlyName: FrontDoorName
-    enabledState: 'Enabled'
-    healthProbeSettings: [
-      {
-        name: 'healthProbeSettings1'
-        properties: {
-          path: '/'
-          protocol: 'Http'
-          intervalInSeconds: 30
-        }
-      }
-    ]
-    loadBalancingSettings: [
-      {
-        name: 'loadBalancingSettings1'
-        properties: {
-          sampleSize: 4
-          successfulSamplesRequired: 2
-        }
-      }
-    ]
-    frontendEndpoints: [
-      {
-        id: '${FrontDoor.id}/FrontendEndpoints/${FrontDoorName}-azurefd-net'
-        name: '${FrontDoorName}-azurefd-net'
-        properties: {
-          hostName: '${FrontDoorName}.azurefd.net'
-          sessionAffinityEnabledState: 'Disabled'
-          sessionAffinityTtlSeconds: 0
-          webApplicationFirewallPolicyLink: {
-            id: '${resourceGroup().id}/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/${FrontdoorPolicyName}'
-          }
-          resourceState: 'Enabled'
-        }
-      }
-    ]
-    backendPools: [
-      {
-        name: 'OWASP'
-        properties: {
-          backends: [
-            {
-              address: publicIpAddress2.properties.ipAddress
-              enabledState: 'Enabled'
-              httpPort: 80
-              httpsPort: 443
-              priority: 1
-              weight: 50
-              backendHostHeader: publicIpAddress2.properties.ipAddress
-            }
-          ]
-          loadBalancingSettings: {
-            id: resourceId('Microsoft.Network/frontDoors/loadBalancingSettings', FrontDoorName, 'loadBalancingSettings1')
-          }
-          healthProbeSettings: {
-            id: resourceId('Microsoft.Network/frontDoors/healthProbeSettings', FrontDoorName, 'healthProbeSettings1')
-          }
-        }
-      }
-    ]
-    routingRules: [
-      {
-        name: 'AppGW'
-        properties: {
-          frontendEndpoints: [
-            {
-              id: '${FrontDoor.id}/frontendEndpoints/${FrontDoorName}-azurefd-net'
-            }
-          ]
-          acceptedProtocols: [
-            'Http'
-            'Https'
-          ]
-          patternsToMatch: [
-            '/*'
-          ]
-          enabledState: 'Enabled'
-          routeConfiguration: {
-            '@odata.type': '#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration'
-            forwardingProtocol: 'HttpOnly'
-            backendPool: {
-              id: resourceId('Microsoft.Network/frontDoors/backendPools', FrontDoorName, 'OWASP')
-            }
-          }
-        }
-      }
-    ]
-  }
-  dependsOn: [
-    '${resourceGroup().id}/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/${FrontdoorPolicyName}'
-  ]
-}
+// resource FrontDoor 'Microsoft.Network/frontdoors@2019-04-01' = {
+//   name: FrontDoorName
+//   location: 'global'
+//   tags: {
+//   }
+//   properties: {
+//     friendlyName: FrontDoorName
+//     enabledState: 'Enabled'
+//     healthProbeSettings: [
+//       {
+//         name: 'healthProbeSettings1'
+//         properties: {
+//           path: '/'
+//           protocol: 'Http'
+//           intervalInSeconds: 30
+//         }
+//       }
+//     ]
+//     loadBalancingSettings: [
+//       {
+//         name: 'loadBalancingSettings1'
+//         properties: {
+//           sampleSize: 4
+//           successfulSamplesRequired: 2
+//         }
+//       }
+//     ]
+//     frontendEndpoints: [
+//       {
+//         id: '${FrontDoor.id}/FrontendEndpoints/${FrontDoorName}-azurefd-net'
+//         name: '${FrontDoorName}-azurefd-net'
+//         properties: {
+//           hostName: '${FrontDoorName}.azurefd.net'
+//           sessionAffinityEnabledState: 'Disabled'
+//           sessionAffinityTtlSeconds: 0
+//           webApplicationFirewallPolicyLink: {
+//             id: '${resourceGroup().id}/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/${FrontdoorPolicyName}'
+//           }
+//           resourceState: 'Enabled'
+//         }
+//       }
+//     ]
+//     backendPools: [
+//       {
+//         name: 'OWASP'
+//         properties: {
+//           backends: [
+//             {
+//               address: publicIpAddress2.properties.ipAddress
+//               enabledState: 'Enabled'
+//               httpPort: 80
+//               httpsPort: 443
+//               priority: 1
+//               weight: 50
+//               backendHostHeader: publicIpAddress2.properties.ipAddress
+//             }
+//           ]
+//           loadBalancingSettings: {
+//             id: resourceId('Microsoft.Network/frontDoors/loadBalancingSettings', FrontDoorName, 'loadBalancingSettings1')
+//           }
+//           healthProbeSettings: {
+//             id: resourceId('Microsoft.Network/frontDoors/healthProbeSettings', FrontDoorName, 'healthProbeSettings1')
+//           }
+//         }
+//       }
+//     ]
+//     routingRules: [
+//       {
+//         name: 'AppGW'
+//         properties: {
+//           frontendEndpoints: [
+//             {
+//               id: '${FrontDoor.id}/frontendEndpoints/${FrontDoorName}-azurefd-net'
+//             }
+//           ]
+//           acceptedProtocols: [
+//             'Http'
+//             'Https'
+//           ]
+//           patternsToMatch: [
+//             '/*'
+//           ]
+//           enabledState: 'Enabled'
+//           routeConfiguration: {
+//             '@odata.type': '#Microsoft.Azure.FrontDoor.Models.FrontdoorForwardingConfiguration'
+//             forwardingProtocol: 'HttpOnly'
+//             backendPool: {
+//               id: resourceId('Microsoft.Network/frontDoors/backendPools', FrontDoorName, 'OWASP')
+//             }
+//           }
+//         }
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     '${resourceGroup().id}/providers/Microsoft.Network/FrontDoorWebApplicationFirewallPolicies/${FrontdoorPolicyName}'
+//   ]
+// }
 
-resource FrontdoorPolicy 'Microsoft.Network/frontdoorwebapplicationfirewallpolicies@2019-10-01' = {
-  name: FrontdoorPolicyName
-  location: 'Global'
-  properties: {
-    policySettings: {
-      enabledState: 'Enabled'
-      mode: 'Prevention'
-      redirectUrl: 'https://www.microsoft.com/en-us/edge'
-      customBlockResponseStatusCode: 403
-      customBlockResponseBody: 'QmxvY2tlZCBieSBmcm9udCBkb29yIFdBRg=='
-    }
-    customRules: {
-      rules: [
-        {
-          name: 'BlockGeoLocationChina'
-          enabledState: 'Enabled'
-          priority: 10
-          ruleType: 'MatchRule'
-          rateLimitDurationInMinutes: 1
-          rateLimitThreshold: 100
-          matchConditions: [
-            {
-              matchVariable: 'RemoteAddr'
-              operator: 'GeoMatch'
-              negateCondition: false
-              matchValue: [
-                'CN'
-              ]
-              transforms: []
-            }
-          ]
-          action: 'Block'
-        }
-        {
-          name: 'RedirectInternetExplorerUserAgent'
-          enabledState: 'Enabled'
-          priority: 20
-          ruleType: 'MatchRule'
-          rateLimitDurationInMinutes: 1
-          rateLimitThreshold: 100
-          matchConditions: [
-            {
-              matchVariable: 'RequestHeader'
-              selector: 'User-Agent'
-              operator: 'Contains'
-              negateCondition: false
-              matchValue: [
-                'rv:11.0'
-              ]
-              transforms: []
-            }
-          ]
-          action: 'Redirect'
-        }
-        {
-          name: 'RateLimitRequest'
-          enabledState: 'Enabled'
-          priority: 30
-          ruleType: 'RateLimitRule'
-          rateLimitDurationInMinutes: 1
-          rateLimitThreshold: 1
-          matchConditions: [
-            {
-              matchVariable: 'RequestUri'
-              operator: 'Contains'
-              negateCondition: false
-              matchValue: [
-                'search'
-              ]
-              transforms: []
-            }
-          ]
-          action: 'Block'
-        }
-      ]
-    }
-    managedRules: {
-      managedRuleSets: [
-        {
-          ruleSetType: 'DefaultRuleSet'
-          ruleSetVersion: '1.0'
-        }
-        {
-          ruleSetType: 'BotProtection'
-          ruleSetVersion: 'preview-0.1'
-        }
-      ]
-    }
-  }
-}
+// resource FrontdoorPolicy 'Microsoft.Network/frontdoorwebapplicationfirewallpolicies@2019-10-01' = {
+//   name: FrontdoorPolicyName
+//   location: 'Global'
+//   properties: {
+//     policySettings: {
+//       enabledState: 'Enabled'
+//       mode: 'Prevention'
+//       redirectUrl: 'https://www.microsoft.com/en-us/edge'
+//       customBlockResponseStatusCode: 403
+//       customBlockResponseBody: 'QmxvY2tlZCBieSBmcm9udCBkb29yIFdBRg=='
+//     }
+//     customRules: {
+//       rules: [
+//         {
+//           name: 'BlockGeoLocationChina'
+//           enabledState: 'Enabled'
+//           priority: 10
+//           ruleType: 'MatchRule'
+//           rateLimitDurationInMinutes: 1
+//           rateLimitThreshold: 100
+//           matchConditions: [
+//             {
+//               matchVariable: 'RemoteAddr'
+//               operator: 'GeoMatch'
+//               negateCondition: false
+//               matchValue: [
+//                 'CN'
+//               ]
+//               transforms: []
+//             }
+//           ]
+//           action: 'Block'
+//         }
+//         {
+//           name: 'RedirectInternetExplorerUserAgent'
+//           enabledState: 'Enabled'
+//           priority: 20
+//           ruleType: 'MatchRule'
+//           rateLimitDurationInMinutes: 1
+//           rateLimitThreshold: 100
+//           matchConditions: [
+//             {
+//               matchVariable: 'RequestHeader'
+//               selector: 'User-Agent'
+//               operator: 'Contains'
+//               negateCondition: false
+//               matchValue: [
+//                 'rv:11.0'
+//               ]
+//               transforms: []
+//             }
+//           ]
+//           action: 'Redirect'
+//         }
+//         {
+//           name: 'RateLimitRequest'
+//           enabledState: 'Enabled'
+//           priority: 30
+//           ruleType: 'RateLimitRule'
+//           rateLimitDurationInMinutes: 1
+//           rateLimitThreshold: 1
+//           matchConditions: [
+//             {
+//               matchVariable: 'RequestUri'
+//               operator: 'Contains'
+//               negateCondition: false
+//               matchValue: [
+//                 'search'
+//               ]
+//               transforms: []
+//             }
+//           ]
+//           action: 'Block'
+//         }
+//       ]
+//     }
+//     managedRules: {
+//       managedRuleSets: [
+//         {
+//           ruleSetType: 'DefaultRuleSet'
+//           ruleSetVersion: '1.0'
+//         }
+//         {
+//           ruleSetType: 'BotProtection'
+//           ruleSetVersion: 'preview-0.1'
+//         }
+//       ]
+//     }
+//   }
+// }
 
-resource FrontDoorName_microsoft_insights_FrontDoorDiagnostics 'Microsoft.Network/frontdoors/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${FrontDoorName}/microsoft.insights/FrontDoorDiagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'FrontdoorAccessLog'
-        enabled: true
-      }
-      {
-        category: 'FrontdoorWebApplicationFirewallLog'
-        enabled: true
-      }
-    ]
-  }
-  dependsOn: [
-    FrontDoor
-  ]
-}
+// resource FrontDoorName_microsoft_insights_FrontDoorDiagnostics 'Microsoft.Network/frontdoors/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${FrontDoorName}/microsoft.insights/FrontDoorDiagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'FrontdoorAccessLog'
+//         enabled: true
+//       }
+//       {
+//         category: 'FrontdoorWebApplicationFirewallLog'
+//         enabled: true
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     FrontDoor
+//   ]
+// }
 
 resource RT_1 'Microsoft.Network/routeTables@2019-02-01' = {
   name: RT_Name1
-  location: resourceGroup().location
+  location: location
   properties: {
     disableBgpRoutePropagation: false
     routes: [
@@ -1343,7 +1345,7 @@ resource RT_1 'Microsoft.Network/routeTables@2019-02-01' = {
 
 resource NSG_1 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
   name: NSG_Name1
-  location: resourceGroup().location
+  location: location
   tags: {
   }
   properties: {
@@ -1386,30 +1388,30 @@ resource NSG_1 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
   }
 }
 
-resource NSG_Name1_microsoft_insights_NSG1Diagnostics 'Microsoft.Network/networkSecurityGroups/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${NSG_Name1}/microsoft.insights/NSG1Diagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'NetworkSecurityGroupEvent'
-        enabled: true
-      }
-      {
-        category: 'NetworkSecurityGroupRuleCounter'
-        enabled: true
-      }
-    ]
-  }
-  dependsOn: [
-    NSG_1
-  ]
-}
+// resource NSG_Name1_microsoft_insights_NSG1Diagnostics 'Microsoft.Network/networkSecurityGroups/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${NSG_Name1}/microsoft.insights/NSG1Diagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'NetworkSecurityGroupEvent'
+//         enabled: true
+//       }
+//       {
+//         category: 'NetworkSecurityGroupRuleCounter'
+//         enabled: true
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     NSG_1
+//   ]
+// }
 
 resource NSG_2 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
   name: NSG_Name2
-  location: resourceGroup().location
+  location: location
   tags: {
   }
   properties: {
@@ -1452,34 +1454,34 @@ resource NSG_2 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
   }
 }
 
-resource NSG_Name2_microsoft_insights_NSG2Diagnostics 'Microsoft.Network/networkSecurityGroups/providers/diagnosticSettings@2017-05-01-preview' = {
-  name: '${NSG_Name2}/microsoft.insights/NSG2Diagnostics'
-  properties: {
-    name: 'DiagService'
-    workspaceId: workspaceid
-    logs: [
-      {
-        category: 'NetworkSecurityGroupEvent'
-        enabled: true
-      }
-      {
-        category: 'NetworkSecurityGroupRuleCounter'
-        enabled: true
-      }
-    ]
-  }
-  dependsOn: [
-    NSG_2
-  ]
-}
+// resource NSG_Name2_microsoft_insights_NSG2Diagnostics 'Microsoft.Network/networkSecurityGroups/providers/diagnosticSettings@2017-05-01-preview' = {
+//   name: '${NSG_Name2}/microsoft.insights/NSG2Diagnostics'
+//   properties: {
+//     name: 'DiagService'
+//     workspaceId: workspaceid
+//     logs: [
+//       {
+//         category: 'NetworkSecurityGroupEvent'
+//         enabled: true
+//       }
+//       {
+//         category: 'NetworkSecurityGroupRuleCounter'
+//         enabled: true
+//       }
+//     ]
+//   }
+//   dependsOn: [
+//     NSG_2
+//   ]
+// }
 
 resource Site_1 'Microsoft.Web/sites@2018-11-01' = {
   name: Site_Name1
-  location: resourceGroup().location
+  location: location
   tags: {
   }
   properties: {
-    name: Site_Name1
+    //name: Site_Name1
     siteConfig: {
       appSettings: [
         {
@@ -1494,41 +1496,42 @@ resource Site_1 'Microsoft.Web/sites@2018-11-01' = {
       linuxFxVersion: 'DOCKER|mohitkusecurity/juice-shop-updated'
       alwaysOn: true
     }
-    serverFarmId: '${resourceGroup().id}/providers/Microsoft.Web/serverfarms/${Site_HPN_var}'
+    //serverFarmId: resourceId('Microsoft.Web/serverfarms', Site_HPN_var)
+    serverFarmId: Site_HPN.id
     clientAffinityEnabled: false
   }
-  dependsOn: [
-    Site_HPN
-  ]
+  // dependsOn: [
+  //   Site_HPN
+  // ]
 }
 
 resource Site_HPN 'Microsoft.Web/serverfarms@2018-02-01' = {
   name: Site_HPN_var
-  location: resourceGroup().location
+  location: location
   sku: {
     tier: 'PremiumV2'
     name: 'P1v2'
   }
   kind: 'linux'
   properties: {
-    name: Site_HPN_var
-    workerSize: 3
-    workerSizeId: 3
-    numberOfWorkers: 1
+    // name: Site_HPN_var
+    // workerSize: 3
+    // workerSizeId: 3
+    // numberOfWorkers: 1
     reserved: true
   }
 }
 // Commenting  DDOS plan out because it's really expensive
 // resource DDoSPlan 'Microsoft.Network/ddosProtectionPlans@2020-04-01' = {
 //   name: DDoSPlanName
-//   location: resourceGroup().location
+//   location: location
 //   properties: {
 //   }
 // }
 
 resource NIC_1 'Microsoft.Network/networkInterfaces@2019-07-01' = {
   name: NIC_Name1
-  location: resourceGroup().location
+  location: location
   properties: {
     ipConfigurations: [
       {
@@ -1547,7 +1550,7 @@ resource NIC_1 'Microsoft.Network/networkInterfaces@2019-07-01' = {
 
 resource NIC_2 'Microsoft.Network/networkInterfaces@2019-07-01' = {
   name: NIC_Name2
-  location: resourceGroup().location
+  location: location
   properties: {
     ipConfigurations: [
       {
@@ -1566,7 +1569,7 @@ resource NIC_2 'Microsoft.Network/networkInterfaces@2019-07-01' = {
 
 resource NIC_3 'Microsoft.Network/networkInterfaces@2019-07-01' = {
   name: NIC_Name3
-  location: resourceGroup().location
+  location: location
   properties: {
     ipConfigurations: [
       {
@@ -1585,7 +1588,7 @@ resource NIC_3 'Microsoft.Network/networkInterfaces@2019-07-01' = {
 
 resource VM_1 'Microsoft.Compute/virtualMachines@2019-07-01' = {
   name: VM_Name1
-  location: resourceGroup().location
+  location: location
   properties: {
     hardwareProfile: {
       vmSize: 'Standard_D2s_v3'
@@ -1626,7 +1629,7 @@ resource VM_1 'Microsoft.Compute/virtualMachines@2019-07-01' = {
 
 resource VM_2 'Microsoft.Compute/virtualMachines@2019-07-01' = {
   name: VM_Name2
-  location: resourceGroup().location
+  location: location
   plan: {
     name: 'kali'
     publisher: 'kali-linux'
@@ -1668,7 +1671,7 @@ resource VM_2 'Microsoft.Compute/virtualMachines@2019-07-01' = {
 
 resource VM_3 'Microsoft.Compute/virtualMachines@2019-07-01' = {
   name: VM_Name3
-  location: resourceGroup().location
+  location: location
   properties: {
     hardwareProfile: {
       vmSize: 'Standard_D2s_v3'

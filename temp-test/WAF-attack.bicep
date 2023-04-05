@@ -5,14 +5,14 @@ param DefaultUserName string = 'svradmin'
 @secure()
 param DefaultPassword string = 'H@ppytimes123!'
 
-@description('Provide the workspace name for your Network Diagnostic logs')
-param DiagnosticsWorkspaceName string = '<WorkspaceName>'
+// @description('Provide the workspace name for your Network Diagnostic logs')
+// param DiagnosticsWorkspaceName string = '<WorkspaceName>'
 
-@description('Provide the workspace subscription GUID for your Network Diagnostic logs')
-param DiagnosticsWorkspaceSubscription string = '<WorkspaceSubscriptionID>'
+// @description('Provide the workspace subscription GUID for your Network Diagnostic logs')
+// param DiagnosticsWorkspaceSubscription string = '<WorkspaceSubscriptionID>'
 
-@description('Provide the workspace resourcegroupname for your Network Diagnostic logs')
-param DiagnosticsWorkspaceResourceGroup string = '<ResourceGroupName>'
+// @description('Provide the workspace resourcegroupname for your Network Diagnostic logs')
+// param DiagnosticsWorkspaceResourceGroup string = '<ResourceGroupName>'
 
 @description('Allowing the ability to enable or disable DDoS on deployment, false is disable, true is enable')
 @allowed([
@@ -30,21 +30,21 @@ param workspaceName string = 'SOCNSLogAnalytics'
 var hub_vnet_name = 'VN-HUB'
 var spoke_1_name = 'VN-SPOKE1'
 var spoke_2_name = 'VN-SPOKE2'
-var hub_vnet_namePrefix = '10.0.25.0/24'
-var hub_vnet_nameSubnet1Name = 'AGWAFSubnet'
-var hub_vnet_nameSubnet1Prefix = '10.0.25.64/26'
-var hub_vnet_nameSubnet2Name = 'AzureFirewallSubnet'
-var hub_vnet_nameSubnet2Prefix = '10.0.25.0/26'
-var spoke_1_namePrefix = '10.0.27.0/24'
-var spoke_1_nameSubnet1Name = 'SPOKE1-SUBNET1'
-var spoke_1_nameSubnet1Prefix = '10.0.27.0/26'
-var spoke_1_nameSubnet2Name = 'SPOKE1-SUBNET2'
-var spoke_1_nameSubnet2Prefix = '10.0.27.64/26'
-var spoke_2_namePrefix = '10.0.28.0/24'
-var spoke_2_nameSubnet1Name = 'SPOKE2-SUBNET1'
-var spoke_2_nameSubnet1Prefix = '10.0.28.0/26'
-var spoke_2_nameSubnet2Name = 'SPOKE2-SUBNET2'
-var spoke_2_nameSubnet2Prefix = '10.0.28.64/26'
+var hub_vnet_Prefix = '10.0.25.0/24'
+var hub_vnet_appgw_subnet = 'AGWAFSubnet'
+var hub_vnet_appgw_subnet_prefix = '10.0.25.64/26'
+var hub_vnet_fw_subnet_prefix = 'AzureFirewallSubnet'
+var hub_vnet_Subnet2Prefix = '10.0.25.0/26'
+var spoke_1_Prefix = '10.0.27.0/24'
+var spoke_1_Subnet1Name = 'SPOKE1-SUBNET1'
+var spoke_1_Subnet1Prefix = '10.0.27.0/26'
+var spoke_1_Subnet2Name = 'SPOKE1-SUBNET2'
+var spoke_1_Subnet2Prefix = '10.0.27.64/26'
+var spoke_2_prefix = '10.0.28.0/24'
+var spoke_2_Subnet1Name = 'SPOKE2-SUBNET1'
+var spoke_2_Subnet1Prefix = '10.0.28.0/26'
+var spoke_2_Subnet2Name = 'SPOKE2-SUBNET2'
+var spoke_2_Subnet2Prefix = '10.0.28.64/26'
 var Subnet_serviceEndpoints = [
   {
     service: 'Microsoft.Web'
@@ -114,7 +114,7 @@ resource hub_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   properties: {
     addressSpace: {
       addressPrefixes: [
-        hub_vnet_namePrefix
+        hub_vnet_Prefix
       ]
     }
     enableDdosProtection: DDOSProtectionConfiguration
@@ -128,9 +128,9 @@ resource hub_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
 resource hub_vnet_name_hub_vnet_nameSubnet1 'Microsoft.Network/virtualNetworks/subnets@2020-03-01' = {
   parent: hub_vnet
   //location: location
-  name: hub_vnet_nameSubnet1Name
+  name: hub_vnet_appgw_subnet
   properties: {
-    addressPrefix: hub_vnet_nameSubnet1Prefix
+    addressPrefix: hub_vnet_appgw_subnet_prefix
     serviceEndpoints: Subnet_serviceEndpoints
   }
 }
@@ -138,9 +138,9 @@ resource hub_vnet_name_hub_vnet_nameSubnet1 'Microsoft.Network/virtualNetworks/s
 resource hub_vnet_name_hub_vnet_nameSubnet2 'Microsoft.Network/virtualNetworks/subnets@2020-03-01' = {
   parent: hub_vnet
   //location: location
-  name: hub_vnet_nameSubnet2Name
+  name: hub_vnet_fw_subnet_prefix
   properties: {
-    addressPrefix: hub_vnet_nameSubnet2Prefix
+    addressPrefix: hub_vnet_Subnet2Prefix
     serviceEndpoints: Subnet_serviceEndpoints
   }
   dependsOn: [
@@ -179,14 +179,14 @@ resource spoke_1_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   properties: {
     addressSpace: {
       addressPrefixes: [
-        spoke_1_namePrefix
+        spoke_1_Prefix
       ]
     }
     subnets: [
       {
-        name: spoke_1_nameSubnet1Name
+        name: spoke_1_Subnet1Name
         properties: {
-          addressPrefix: spoke_1_nameSubnet1Prefix
+          addressPrefix: spoke_1_Subnet1Prefix
           networkSecurityGroup: {
             id: NSG_1.id
           }
@@ -199,9 +199,9 @@ resource spoke_1_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
         }
       }
       {
-        name: spoke_1_nameSubnet2Name
+        name: spoke_1_Subnet2Name
         properties: {
-          addressPrefix: spoke_1_nameSubnet2Prefix
+          addressPrefix: spoke_1_Subnet2Prefix
           networkSecurityGroup: {
             id: NSG_1.id
           }
@@ -217,23 +217,26 @@ resource spoke_1_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   }
 }
 
-// resource spoke_1_name_microsoft_insights_VN2Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
-//   name: '${spoke_1_name}/microsoft.insights/VN2Diagnostics'
-//   properties: {
-//     name: 'DiagService'
-//     workspaceId: workspaceid
-//     logs: [
-//       {
-//         category: 'VMProtectionAlerts'
-//         enabled: true
-//       }
-//     ]
-//   }
-//   dependsOn: [
-//     spoke_1_vnet
-//   ]
-// }
-
+resource spok1_1_vnet_diagnostics 'microsoft.insights/diagnosticSettings@2021-05-01-preview' = {
+  scope:spoke_1_vnet
+  name: 'diagsettings'
+  properties: {
+    workspaceId: laworkspace.id
+    logs: [
+      {
+        category: 'VMProtectionAlerts'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+    
+  }
+}
 resource spoke_2_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   name: spoke_2_name
   location: location
@@ -243,14 +246,14 @@ resource spoke_2_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   properties: {
     addressSpace: {
       addressPrefixes: [
-        spoke_2_namePrefix
+        spoke_2_prefix
       ]
     }
     subnets: [
       {
-        name: spoke_2_nameSubnet1Name
+        name: spoke_2_Subnet1Name
         properties: {
-          addressPrefix: spoke_2_nameSubnet1Prefix
+          addressPrefix: spoke_2_Subnet1Prefix
           networkSecurityGroup: {
             id: NSG_2.id
           }
@@ -263,9 +266,9 @@ resource spoke_2_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
         }
       }
       {
-        name: spoke_2_nameSubnet2Name
+        name: spoke_2_Subnet2Name
         properties: {
-          addressPrefix: spoke_2_nameSubnet2Prefix
+          addressPrefix: spoke_2_Subnet2Prefix
           networkSecurityGroup: {
             id: NSG_2.id
           }
@@ -281,22 +284,26 @@ resource spoke_2_vnet 'Microsoft.Network/virtualNetworks@2020-03-01' = {
   }
 }
 
-// resource spoke_2_name_microsoft_insights_VN3Diagnostics 'Microsoft.Network/virtualNetworks/providers/diagnosticSettings@2017-05-01-preview' = {
-//   name: '${spoke_2_name}/microsoft.insights/VN3Diagnostics'
-//   properties: {
-//     name: 'DiagService'
-//     workspaceId: workspaceid
-//     logs: [
-//       {
-//         category: 'VMProtectionAlerts'
-//         enabled: true
-//       }
-//     ]
-//   }
-//   dependsOn: [
-//     spoke_2_vnet
-//   ]
-// }
+resource spoke_2_vnet_diagnostics 'microsoft.insights/diagnosticSettings@2021-05-01-preview' = {
+  scope:spoke_2_vnet
+  name: 'diagsettings'
+  properties: {
+    workspaceId: laworkspace.id
+    logs: [
+      {
+        category: 'VMProtectionAlerts'
+        enabled: true
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+      }
+    ]
+    
+  }
+}
 
 resource hub_vnet_name_hub_vnet_name_Peering_To_spoke_1_name 'Microsoft.Network/virtualNetworks/virtualNetworkPeerings@2020-04-01' = {
   parent: hub_vnet
@@ -312,7 +319,7 @@ resource hub_vnet_name_hub_vnet_name_Peering_To_spoke_1_name 'Microsoft.Network/
     useRemoteGateways: false
     remoteAddressSpace: {
       addressPrefixes: [
-        spoke_1_namePrefix
+        spoke_1_Prefix
       ]
     }
   }
@@ -338,7 +345,7 @@ resource hub_vnet_name_hub_vnet_name_Peering_To_spoke_2_name 'Microsoft.Network/
     useRemoteGateways: false
     remoteAddressSpace: {
       addressPrefixes: [
-        spoke_2_namePrefix
+        spoke_2_prefix
       ]
     }
   }
@@ -365,7 +372,7 @@ resource spoke_1_name_spoke_1_name_Peering_To_hub_vnet_name 'Microsoft.Network/v
     useRemoteGateways: false
     remoteAddressSpace: {
       addressPrefixes: [
-        hub_vnet_namePrefix
+        hub_vnet_Prefix
       ]
     }
   }
@@ -391,7 +398,7 @@ resource spoke_2_name_spoke_2_name_Peering_To_hub_vnet_name 'Microsoft.Network/v
     useRemoteGateways: false
     remoteAddressSpace: {
       addressPrefixes: [
-        hub_vnet_namePrefix
+        hub_vnet_Prefix
       ]
     }
   }
@@ -418,31 +425,29 @@ resource publicIpAddress1 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
     idleTimeoutInMinutes: 4
   }
 }
+resource public_ip_1_diagnostics 'microsoft.insights/diagnosticSettings@2021-05-01-preview' = {
+  scope:publicIpAddress1
+  name: 'diagsettings'
+  properties: {
+    workspaceId: laworkspace.id
+    logs: [
+      {
+        category: 'DDoSProtectionNotifications'
+        enabled: true
+      }
+      {
+        category: 'DDoSMitigationFlowLogs'
+        enabled: true
+      }
+      {
+        category: 'DDoSMitigationReports'
+        enabled: true
+      }
+      
+    ]
+  }
+}
 
-// resource publicIpAddressName1_microsoft_insights_PIP1Diagnostics 'Microsoft.Network/publicIpAddresses/providers/diagnosticSettings@2017-05-01-preview' = {
-//   name: '${publicIpAddressName1}/microsoft.insights/PIP1Diagnostics'
-//   properties: {
-//     name: 'DiagService'
-//     workspaceId: workspaceid
-//     logs: [
-//       {
-//         category: 'DDoSProtectionNotifications'
-//         enabled: true
-//       }
-//       {
-//         category: 'DDoSMitigationFlowLogs'
-//         enabled: true
-//       }
-//       {
-//         category: 'DDoSMitigationReports'
-//         enabled: true
-//       }
-//     ]
-//   }
-//   dependsOn: [
-//     publicIpAddress1
-//   ]
-// }
 
 resource publicIpAddress2 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
   name: publicIpAddressName2
@@ -458,61 +463,94 @@ resource publicIpAddress2 'Microsoft.Network/publicIpAddresses@2019-02-01' = {
     idleTimeoutInMinutes: 4
   }
 }
+resource public_ip_2_diagnostics 'microsoft.insights/diagnosticSettings@2021-05-01-preview' = {
+  scope:publicIpAddress2
+  name: 'diagsettings'
+  properties: {
+    workspaceId: laworkspace.id
+    logs: [
+      {
+        category: 'DDoSProtectionNotifications'
+        enabled: true
+      }
+      {
+        category: 'DDoSMitigationFlowLogs'
+        enabled: true
+      }
+      {
+        category: 'DDoSMitigationReports'
+        enabled: true
+      }
+      
+    ]
+  }
+}
 
-// resource publicIpAddressName2_microsoft_insights_PIP2Diagnostics 'Microsoft.Network/publicIpAddresses/providers/diagnosticSettings@2017-05-01-preview' = {
-//   name: '${publicIpAddressName2}/microsoft.insights/PIP2Diagnostics'
-//   properties: {
-//     name: 'DiagService'
-//     workspaceId: workspaceid
-//     logs: [
-//       {
-//         category: 'DDoSProtectionNotifications'
-//         enabled: true
-//       }
-//       {
-//         category: 'DDoSMitigationFlowLogs'
-//         enabled: true
-//       }
-//       {
-//         category: 'DDoSMitigationReports'
-//         enabled: true
-//       }
-//     ]
-//   }
-//   dependsOn: [
-//     publicIpAddress2
-//   ]
-// }
+resource FW_name 'Microsoft.Network/azureFirewalls@2019-11-01' = {
+  name: fw_name
+  location: location
+  tags: {
+  }
+  properties: {
+    threatIntelMode: 'Deny'
+    ipConfigurations: [
+      {
+        name: publicIpAddressName1
+        properties: {
+          subnet: {
+            id: hub_vnet_name_hub_vnet_nameSubnet2.id
+          }
+          publicIPAddress: {
+            id: publicIpAddress1.id
+          }
+        }
+      }
+    ]
+    firewallPolicy: {
+      id: firewallPolicy.id
+    }
+  }
+  // dependsOn: [
 
-// resource FW_name 'Microsoft.Network/azureFirewalls@2019-11-01' = {
-//   name: fw_name
-//   location: location
-//   tags: {
-//   }
-//   properties: {
-//     threatIntelMode: 'Deny'
-//     ipConfigurations: [
-//       {
-//         name: publicIpAddressName1
-//         properties: {
-//           subnet: {
-//             id: hub_vnet_name_hub_vnet_nameSubnet2.id
-//           }
-//           publicIPAddress: {
-//             id: publicIpAddress1.id
-//           }
-//         }
-//       }
-//     ]
-//     firewallPolicy: {
-//       id: firewallPolicy.id
-//     }
-//   }
-//   dependsOn: [
+  //   AG
+  // ]
+}
 
-//     AG
-//   ]
-// }
+resource fw_diagnostics 'microsoft.insights/diagnosticSettings@2021-05-01-preview' = {
+  scope:FW_name
+  name: 'diagsettings'
+  properties: {
+    workspaceId: laworkspace.id
+    logs: [
+      {
+        category: 'AzureFirewallApplicationRule'
+        enabled: true
+        retentionPolicy: {
+          days: 10
+          enabled: false
+        }
+      }
+      {
+        category: 'AzureFirewallNetworkRule'
+        enabled: true
+        retentionPolicy: {
+          days: 10
+          enabled: false
+        }
+      }
+    ]
+    metrics: [
+      {
+        category: 'AllMetrics'
+        enabled: true
+        retentionPolicy: {
+          enabled: false
+          days: 0
+        }
+      }
+    ]
+  }
+}
 
 // resource FW_name_microsoft_insights_FirewallDiagnostics 'Microsoft.Network/azureFirewalls/providers/diagnosticSettings@2017-05-01-preview' = {
 //   name: '${fw_name}/microsoft.insights/FirewallDiagnostics'
@@ -1001,7 +1039,28 @@ resource AG 'Microsoft.Network/applicationGateways@2020-04-01' = {
 
   ]
 }
-
+resource appgw_diagnostics 'microsoft.insights/diagnosticSettings@2021-05-01-preview' = {
+  scope:AG
+  name: 'diagsettings'
+  properties: {
+    workspaceId: laworkspace.id
+    logs: [
+      {
+        category: 'ApplicationGatewayAccessLog'
+        enabled: true
+      }
+      {
+        category: 'ApplicationGatewayPerformanceLog'
+        enabled: true
+      }
+      {
+        category: 'applicationGatewayFirewallLog'
+        enabled: true
+      }
+      
+    ]
+  }
+}
 // resource AG_Name_microsoft_insights_AppGatewayDiagnostics 'Microsoft.Network/applicationGateways/providers/diagnosticSettings@2017-05-01-preview' = {
 //   name: '${AG_Name}/microsoft.insights/AppGatewayDiagnostics'
 //   properties: {
@@ -1377,7 +1436,7 @@ resource NSG_1 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
           protocol: '*'
           sourcePortRange: '*'
           destinationPortRange: '*'
-          sourceAddressPrefix: spoke_2_namePrefix
+          sourceAddressPrefix: spoke_2_prefix
           destinationAddressPrefix: 'VirtualNetwork'
           access: 'Allow'
           priority: 100
@@ -1395,7 +1454,7 @@ resource NSG_1 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
           sourcePortRange: '*'
           destinationPortRange: '*'
           sourceAddressPrefix: 'VirtualNetwork'
-          destinationAddressPrefix: spoke_2_namePrefix
+          destinationAddressPrefix: spoke_2_prefix
           access: 'Allow'
           priority: 100
           direction: 'Outbound'
@@ -1404,6 +1463,24 @@ resource NSG_1 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
           sourceAddressPrefixes: []
           destinationAddressPrefixes: []
         }
+      }
+    ]
+  }
+}
+
+resource nsg_1_diagnostics 'microsoft.insights/diagnosticSettings@2021-05-01-preview' = {
+  scope:NSG_1
+  name: 'diagsettings'
+  properties: {
+    workspaceId: laworkspace.id
+    logs: [
+      {
+        category: 'NetworkSecurityGroupEvent'
+        enabled: true
+      }
+      {
+        category: 'NetworkSecurityGroupRuleCounter'
+        enabled: true
       }
     ]
   }
@@ -1443,7 +1520,7 @@ resource NSG_2 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
           protocol: '*'
           sourcePortRange: '*'
           destinationPortRange: '*'
-          sourceAddressPrefix: spoke_1_namePrefix
+          sourceAddressPrefix: spoke_1_Prefix
           destinationAddressPrefix: 'VirtualNetwork'
           access: 'Allow'
           priority: 100
@@ -1461,7 +1538,7 @@ resource NSG_2 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
           sourcePortRange: '*'
           destinationPortRange: '*'
           sourceAddressPrefix: 'VirtualNetwork'
-          destinationAddressPrefix: spoke_1_namePrefix
+          destinationAddressPrefix: spoke_1_Prefix
           access: 'Allow'
           priority: 100
           direction: 'Outbound'
@@ -1474,7 +1551,23 @@ resource NSG_2 'Microsoft.Network/networkSecurityGroups@2020-04-01' = {
     ]
   }
 }
-
+resource nsg_2_diagnostics 'microsoft.insights/diagnosticSettings@2021-05-01-preview' = {
+  scope:NSG_2
+  name: 'diagsettings'
+  properties: {
+    workspaceId: laworkspace.id
+    logs: [
+      {
+        category: 'NetworkSecurityGroupEvent'
+        enabled: true
+      }
+      {
+        category: 'NetworkSecurityGroupRuleCounter'
+        enabled: true
+      }
+    ]
+  }
+}
 // resource NSG_Name2_microsoft_insights_NSG2Diagnostics 'Microsoft.Network/networkSecurityGroups/providers/diagnosticSettings@2017-05-01-preview' = {
 //   name: '${NSG_Name2}/microsoft.insights/NSG2Diagnostics'
 //   properties: {
@@ -1561,7 +1654,7 @@ resource NIC_1 'Microsoft.Network/networkInterfaces@2019-07-01' = {
         properties: {
           privateIPAddress: NIC_Name1Ipaddress
           subnet: {
-            id: '${spoke_1_vnet.id}/subnets/${spoke_1_nameSubnet1Name}'
+            id: '${spoke_1_vnet.id}/subnets/${spoke_1_Subnet1Name}'
           }
           privateIPAllocationMethod: 'Static'
         }
@@ -1580,7 +1673,7 @@ resource NIC_2 'Microsoft.Network/networkInterfaces@2019-07-01' = {
         properties: {
           privateIPAddress: NIC_Name2Ipaddress
           subnet: {
-            id: '${spoke_1_vnet.id}/subnets/${spoke_1_nameSubnet2Name}'
+            id: '${spoke_1_vnet.id}/subnets/${spoke_1_Subnet2Name}'
           }
           privateIPAllocationMethod: 'Static'
         }
@@ -1599,7 +1692,7 @@ resource NIC_3 'Microsoft.Network/networkInterfaces@2019-07-01' = {
         properties: {
           privateIPAddress: NIC_Name3Ipaddress
           subnet: {
-            id: '${spoke_2_vnet.id}/subnets/${spoke_2_nameSubnet1Name}'
+            id: '${spoke_2_vnet.id}/subnets/${spoke_2_Subnet1Name}'
           }
           privateIPAllocationMethod: 'Static'
         }
